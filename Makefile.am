@@ -42,7 +42,8 @@ AM_CFLAGS = -fstack-protector -Wall -pedantic \
         -Wall -W -D_FORTIFY_SOURCE=2 \
         -Wno-missing-field-initializers \
         -std=c11 \
-        -DSYSCONFDIR=\"$(sysconfdir)\"
+        -DSYSCONFDIR=\"$(sysconfdir)\" \
+	    -D_POSIX_C_SOURCE=201112L
 
 AM_CPPFLAGS = 					 \
 	-I $(top_srcdir)/src			 \
@@ -50,6 +51,7 @@ AM_CPPFLAGS = 					 \
 	-I $(top_srcdir)/src/cli		 \
 	-I $(top_srcdir)/src/bootloaders	 \
 	-I $(top_srcdir)/src/lib		 \
+	-I $(top_srcdir)/src/efi		\
 	-I $(top_srcdir)/src/libnica/src/include \
 	-DTOP_DIR=\"$(abs_top_srcdir)\"		 \
 	-DTOP_BUILD_DIR=\"$(abs_top_builddir)\"
@@ -77,6 +79,7 @@ libcbm_la_SOURCES =			\
 	src/bootloaders/bootloader.h	\
 	src/bootloaders/systemd-class.h \
 	src/bootloaders/systemd-class.c \
+	src/bootloaders/shim-systemd.c	\
 	src/bootloaders/systemd-boot.c	\
 	src/bootloaders/grub2.c		\
 	src/bootloaders/gummiboot.c	\
@@ -106,7 +109,9 @@ libcbm_la_SOURCES =			\
 	src/lib/writer.h                \
 	src/lib/writer.c                \
 	src/lib/util.h			\
-	src/lib/util.c
+	src/lib/util.c					\
+	src/lib/bootvar.c			\
+	src/lib/bootvar.h
 
 libcbm_la_CFLAGS =		\
 	-D_BOOTMAN_INTERNAL_	\
