@@ -43,7 +43,10 @@ AM_CFLAGS = -fstack-protector -Wall -pedantic \
         -Wno-missing-field-initializers \
         -std=c11 \
         -DSYSCONFDIR=\"$(sysconfdir)\" \
-	    -D_POSIX_C_SOURCE=201112L
+	    -D_POSIX_C_SOURCE=201112L \
+		-isystem @efivar@ \
+		-isystem @gnuefi@ \
+		-isystem @gnuefi@/@host_cpu@
 
 AM_CPPFLAGS = 					 \
 	-I $(top_srcdir)/src			 \
@@ -139,6 +142,8 @@ clr_boot_manager_CFLAGS =	\
 clr_boot_manager_LDADD =	\
 	libcbm.la		\
 	src/libnica/libnica.la		\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)
 
 install-exec-hook:
@@ -185,6 +190,8 @@ check_core_CFLAGS =		\
 check_core_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -199,6 +206,8 @@ check_cmdline_CFLAGS =		\
 check_cmdline_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -215,6 +224,8 @@ check_files_CFLAGS =		\
 check_files_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -233,6 +244,8 @@ check_legacy_CFLAGS =		\
 check_legacy_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -247,6 +260,8 @@ check_os_release_CFLAGS =		\
 check_os_release_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -265,6 +280,8 @@ check_uefi_CFLAGS =		\
 check_uefi_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -283,6 +300,8 @@ check_grub2_CFLAGS =		\
 check_grub2_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -301,6 +320,8 @@ check_select_bootloader_CFLAGS =		\
 check_select_bootloader_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
@@ -319,6 +340,8 @@ check_probe_CFLAGS =		\
 check_probe_LDADD =	\
 	libcbm.la	\
 	src/libnica/libnica.la	\
+	-lefiboot		\
+	-lefivar		\
 	$(BLKID_LIBS)	\
 	$(CHECK_LIBS)
 
