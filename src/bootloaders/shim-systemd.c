@@ -12,7 +12,6 @@
 #define _GNU_SOURCE
 
 #include <linux/limits.h>
-#include <libgen.h>
 
 #include "bootloader.h"
 #include "bootman.h"
@@ -140,6 +139,7 @@ typedef struct shim_systemd_config {
 
         char *shim_dst_esp;  /* absolute location of shim on the ESP, for boot record */
 
+        char *efi_fallback_dir;
         char *efi_fallback_dst_host;
         char *kernel_dst_esp;
         int is_image_mode;
@@ -240,12 +240,9 @@ static bool make_layout(const BootManager *manager)
         /* in case of image creation, override the fallback bootloader, so the
          * media will be bootable. */
         if (config.is_image_mode) {
-                char *efi_fallback_dir = dirname(strdup(config.efi_fallback_dst_host));
-                if (!nc_mkdir_p(efi_fallback_dir, 00755)) {
-                        free(efi_fallback_dir);
+                if (!nc_mkdir_p(config.efi_fallback_dir, 00755)) {
                         return false;
                 }
-                free(efi_fallback_dir);
         }
         return true;
 }
@@ -356,10 +353,14 @@ static bool shim_systemd_init(const BootManager *manager)
 
         config.shim_dst_esp = strdup(config.shim_dst_host + strlen(boot_root));
 
+        config.efi_fallback_dir = nc_build_case_correct_path(boot_root, ESP_EFI, ESP_BOOT, NULL);
         config.efi_fallback_dst_host =
             nc_build_case_correct_path(boot_root, ESP_EFI, ESP_BOOT, EFI_FALLBACK, NULL);
         config.kernel_dst_host =
             nc_build_case_correct_path(boot_root, ESP_EFI, KERNEL_NAMESPACE, KERNEL_DST_DIR, NULL);
+        /* kernel_dst_esp is the ESP-absolute path which will be consumed by
+         * bootloaders and it have to be case-correct too, extract it from
+         * case-corrected kernel_dst_host. */
         config.kernel_dst_esp = strdup(config.kernel_dst_host + strlen(boot_root));
 
         return true;
@@ -372,6 +373,7 @@ static void shim_systemd_destroy(const BootManager *manager)
         free(config.shim_dst_host);
         free(config.systemd_dst_host);
         free(config.shim_dst_esp);
+        free(config.efi_fallback_dir);
         free(config.efi_fallback_dst_host);
         free(config.kernel_dst_host);
         free(config.kernel_dst_esp);
