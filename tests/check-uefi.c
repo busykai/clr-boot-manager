@@ -202,6 +202,14 @@ END_TEST
 static void internal_loader_test(bool image_mode)
 {
         autofree(BootManager) *m = NULL;
+        bool installs_default_bootloader = true;
+#if defined(HAVE_SHIM_SYSTEMD_BOOT)
+        installs_default_bootloader = false;
+#endif
+        /* whether the harness needs to check the default bootloader match.
+         * shim-systemd is the only exception, it only installs the default
+         * bootloader in the image mode. */
+        bool check_default_bootloader = installs_default_bootloader || image_mode;
         PlaygroundConfig start_conf = {.uefi = true };
 
         m = prepare_playground(&start_conf);
@@ -212,17 +220,17 @@ static void internal_loader_test(bool image_mode)
                 "Failed to install bootloader");
 
         confirm_bootloader();
-        fail_if(!confirm_bootloader_match(), "Installed bootloader is incorrect");
+        fail_if(!confirm_bootloader_match(check_default_bootloader), "Installed bootloader is incorrect");
 
         fail_if(!push_bootloader_update(1), "Failed to bump source bootloader");
-        fail_if(confirm_bootloader_match(), "Source shouldn't match target bootloader yet");
+        fail_if(confirm_bootloader_match(check_default_bootloader), "Source shouldn't match target bootloader yet");
 
         fail_if(!boot_manager_modify_bootloader(m,
                                                 BOOTLOADER_OPERATION_UPDATE |
                                                     BOOTLOADER_OPERATION_NO_CHECK),
                 "Failed to forcibly update bootloader");
         confirm_bootloader();
-        fail_if(!confirm_bootloader_match(), "Bootloader didn't actually update");
+        fail_if(!confirm_bootloader_match(check_default_bootloader), "Bootloader didn't actually update");
 
         /* We're in sync */
         fail_if(boot_manager_needs_update(m), "Bootloader lied about needing an update");
@@ -232,7 +240,7 @@ static void internal_loader_test(bool image_mode)
         fail_if(!boot_manager_needs_update(m), "Bootloader doesn't know it needs update");
         fail_if(!boot_manager_modify_bootloader(m, BOOTLOADER_OPERATION_UPDATE),
                 "Failed to auto-update bootloader");
-        fail_if(!confirm_bootloader_match(), "Auto-updated bootloader doesn't match source");
+        fail_if(!confirm_bootloader_match(check_default_bootloader), "Auto-updated bootloader doesn't match source");
 }
 
 START_TEST(bootman_uefi_update_image)
@@ -263,7 +271,7 @@ START_TEST(bootman_uefi_remove_bootloader)
         autofree(BootManager) *m = NULL;
 
         fail_if(!nc_file_exists(TOP_BUILD_DIR "/tests/update_playground/" BOOT_DIRECTORY
-                                              "/EFI/Boot"),
+                                              "/efi/BOOT"),
                 "Main EFI directory missing, botched install");
 
         m = prepare_playground(&uefi_config);
@@ -281,19 +289,19 @@ START_TEST(bootman_uefi_remove_bootloader)
 
         /* Ensure that it is indeed removed. */
         fail_if(nc_file_exists(TOP_BUILD_DIR "/tests/update_playground" BOOT_DIRECTORY
-                                             "/EFI/Boot" DEFAULT_EFI_BLOB),
+                                             "/efi/BOOT" DEFAULT_EFI_BLOB),
                 "Main x64 bootloader present");
 #if defined(HAVE_SYSTEMD_BOOT)
         fail_if(nc_file_exists(TOP_BUILD_DIR "/tests/update_playground/" BOOT_DIRECTORY
-                                             "/EFI/systemd"),
+                                             "/efi/systemd"),
                 "Systemd x64 bootloader present");
 #elif defined(HAVE_GUMMIBOOT)
         fail_if(nc_file_exists(TOP_BUILD_DIR "/tests/update_playground/" BOOT_DIRECTORY
-                                             "/EFI/gummiboot"),
+                                             "/efi/gummiboot"),
                 "gummiboot x64 bootloader present");
 #else
         fail_if(nc_file_exists(TOP_BUILD_DIR "/tests/update_playground/" BOOT_DIRECTORY
-                                             "/EFI/goofiboot"),
+                                             "/efi/goofiboot"),
                 "goofiboot x64 bootloader present");
 #endif
 
